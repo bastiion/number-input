@@ -1,0 +1,28 @@
+{
+  "name": "range-input",
+  "author": "fooloomanzoo",
+  "description": "alternative inputs for ranges",
+  "main": "range-input.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/fooloomanzoo/range-input",
+  "_release": "dc37657846",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "dc3765784633fa47266e2bdb67310da93a50f318"
+  },
+  "_source": "https://github.com/fooloomanzoo/range-input.git",
+  "_target": "*",
+  "_originalSource": "fooloomanzoo/range-input"
+}
