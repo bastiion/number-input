@@ -16,11 +16,12 @@
   },
   "license": "MIT",
   "homepage": "https://github.com/fooloomanzoo/range-input",
-  "_release": "dc37657846",
+  "version": "0.5.1",
+  "_release": "0.5.1",
   "_resolution": {
-    "type": "branch",
-    "branch": "master",
-    "commit": "dc3765784633fa47266e2bdb67310da93a50f318"
+    "type": "version",
+    "tag": "0.5.1",
+    "commit": "13f7f006555e37bdcc23f157b39b043275475fa1"
   },
   "_source": "https://github.com/fooloomanzoo/range-input.git",
   "_target": "*",
