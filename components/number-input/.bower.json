@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "polymer": "Polymer/polymer",
-    "range-input": "fooloomanzoo/range-input"
+    "property-mixins": "fooloomanzoo/property-mixins"
   },
   "devDependencies": {
     "webcomponentsjs": "webcomponents/webcomponentsjs",
@@ -30,12 +30,12 @@
   "resolutions": {
     "webcomponentsjs": "^1.0.0"
   },
-  "version": "1.2.2",
-  "_release": "1.2.2",
+  "version": "1.3.0",
+  "_release": "1.3.0",
   "_resolution": {
     "type": "version",
-    "tag": "1.2.2",
-    "commit": "46232e591533b705f35453095f468a79c455d89a"
+    "tag": "1.3.0",
+    "commit": "d9a0c4e105335c4aa69f1e48d6501323ea00cf1a"
   },
   "_source": "https://github.com/fooloomanzoo/number-input.git",
   "_target": "*",
