@@ -66,11 +66,25 @@
             min: +max,
             max: +min
           })
-        } else if (min !== undefined && max !== undefined && this.value === undefined) {
-          if (+min <= 0 && +max >= 0) {
-            this.value = 0;
+        } else if (this.value === undefined && (min !== undefined || max !== undefined)) {
+          if (min !== undefined) {
+            if (+min > 0) {
+              this.value = min;
+            } else if (max === undefined || +max >= 0) {
+              this.value = 0;
+            } else {
+              this.value = this._checkStep((+max - min) / 2, this.step || 1);
+            }
+          } else if (max !== undefined) {
+            if (+max > 0) {
+              this.value = min;
+            } else if (min === undefined || +min <= 0) {
+              this.value = 0;
+            } else {
+              this.value = this._checkStep((+max - min) / 2, this.step || 1);
+            }
           } else {
-            this.value = this._checkStep((+max - min) / 2, this.step)
+            this.value = 0;
           }
         } else {
           this._updateValue();
@@ -195,6 +209,6 @@
       }
     }
   }
-  
+
   window.RangeMixin = RangeMixin;
 </script>
