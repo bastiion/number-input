@@ -255,8 +255,7 @@
         super.connectedCallback();
         setTimeout(() => {
           if (this.value === undefined && !this.date && !this.time && !this.datetime) {
-            // console.log('new Date', this.value, this.date, this.time, this.datetime, this.value === undefined && !this.date && !this.time && !this.datetime);
-            this._setDate(new Date());
+            this.now();
           }
         }, 0);
       }
@@ -295,12 +294,13 @@
           this._setDate(d);
         }
         else {
-          this._setDate(new Date(year, month - 1, day, hours, minutes, seconds, milliseconds));
+          let d = new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
+          d.setFullYear(year);
+          this._setDate(d);
         }
       }
 
       _computeValue(date, time) {
-        // console.log(date, time);
         if (date === undefined && time === undefined) return;
 
         if (this.timezoneOffset === undefined) {
@@ -356,7 +356,6 @@
        */
       _setDate(d) {
         if (!isNaN(+d)) {
-          // console.log(d);
           if (this.min && this._checkMin(d) === false) {
             d = new Date(this.min);
           } else if (this.max && this._checkMax(d) === false) {
@@ -377,7 +376,6 @@
             toSet.datetime = datetime;
             toSet.date = date;
             toSet.time = time;
-            // console.log(toSet);
             this.setProperties(toSet);
             return;
           }
@@ -398,7 +396,6 @@
             toSet.minutes = minutes;
             toSet.seconds = seconds;
             toSet.milliseconds = milliseconds;
-            // console.log(toSet);
             this.setProperties(toSet);
             return;
           }
@@ -430,18 +427,11 @@
       }
 
       _pad(n, padLength) {
-        let str = '' + n;
-        let targetLength = padLength || this.padLength || (this.placeholder && this.placeholder.length) || Math.log10(+n);
-        const padString = '0';
-        if (str.length > targetLength) {
-          return str;
-        } else {
-          targetLength = targetLength - str.length;
-          for (let i = 0; i < targetLength; i++) {
-            str = padString + str;
-          }
-          return str;
-        }
+        const sign = n < 0 ? '-' : '';
+        let str = '' + Math.abs(n);
+        while (str.length < padLength)
+          str = '0' + str;
+        return sign + str;
       }
 
       _minChanged(min) {
@@ -508,7 +498,7 @@
         if (isNaN(+d) || !d.getTime)
           return '';
 
-        return d.getFullYear() + '-' + this._pad(d.getMonth() + 1, 2) + '-' + this._pad(d.getDate(), 2);
+        return this._pad(d.getFullYear(), 4) + '-' + this._pad(d.getMonth() + 1, 2) + '-' + this._pad(d.getDate(), 2);
       }
 
       _toTime(d) {
@@ -586,12 +576,10 @@
         });
 
         // date separator
-        const dateSeparator = dateString.split(/\d|\s/g).filter(s => {
-          return s !== '';
-        })[0];
+        const dateSeparator = dateString.split(/\d+/g).filter(Boolean).pop();
 
         // order of the date parts
-        let parts = dateString.split(/\D/);
+        let parts = dateString.match(/\d+/g);
         parts.splice(1, 0, '');
         parts.splice(3, 0, '');
 
@@ -666,6 +654,8 @@
 
       _computeMaxDayOfMonth(year, month) {
         const d = new Date(year, month, 0);
+        d.setFullYear(year);
+
         if (!isNaN(+d)) {
           return d.getDate();
         }
