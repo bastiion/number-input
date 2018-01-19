@@ -25,14 +25,14 @@
     "test",
     "tests"
   ],
-  "version": "1.0.12",
-  "_release": "1.0.12",
+  "version": "1.0.13",
+  "_release": "1.0.13",
   "_resolution": {
     "type": "version",
-    "tag": "1.0.12",
-    "commit": "72ec604e443942eb0e76f84a88c96b93a37207ab"
+    "tag": "1.0.13",
+    "commit": "570128a9b44753e4da42c600cbae5cfa039b473b"
   },
   "_source": "https://github.com/fooloomanzoo/property-mixins.git",
-  "_target": "*",
+  "_target": "1.0.13",
   "_originalSource": "fooloomanzoo/property-mixins"
 }
