@@ -4,7 +4,6 @@
   "main": [
     "color-mixin.html",
     "datetime-mixin.html",
-    "intl-number-mixin.html",
     "range-mixin.html"
   ],
   "authors": [
@@ -25,14 +24,14 @@
     "test",
     "tests"
   ],
-  "version": "1.0.13",
-  "_release": "1.0.13",
+  "version": "2.0.2",
+  "_release": "2.0.2",
   "_resolution": {
     "type": "version",
-    "tag": "1.0.13",
-    "commit": "570128a9b44753e4da42c600cbae5cfa039b473b"
+    "tag": "2.0.2",
+    "commit": "a04106a58511486389222739ddabc8e719a84e1c"
   },
   "_source": "https://github.com/fooloomanzoo/property-mixins.git",
-  "_target": "1.0.13",
+  "_target": "2",
   "_originalSource": "fooloomanzoo/property-mixins"
 }
