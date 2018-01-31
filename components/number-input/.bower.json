@@ -33,12 +33,12 @@
   "resolutions": {
     "webcomponentsjs": "^1.0.0"
   },
-  "version": "2.0.5",
-  "_release": "2.0.5",
+  "version": "2.0.6",
+  "_release": "2.0.6",
   "_resolution": {
     "type": "version",
-    "tag": "2.0.5",
-    "commit": "12f79811c55b86c93f48ad1d2f7ce1a5ba233f37"
+    "tag": "2.0.6",
+    "commit": "cfbe9489084c97f1b54b4ba97774218ec2875c86"
   },
   "_source": "https://github.com/fooloomanzoo/number-input.git",
   "_target": "*",
