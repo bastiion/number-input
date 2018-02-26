@@ -223,7 +223,7 @@
        */
       static get pickerTemplate() {
         return `
-          <div id="picker" class="dropdown" tabindex$="[[opened]]">
+          <div id="picker" class="dropdown">
             <div id="buttons">
               ${this._buttonTemplate}
             <div>
@@ -314,34 +314,43 @@
 
       connectedCallback() {
         super.connectedCallback();
-        this._addBlurListener();
+        this._addPickerTransitionEndListener();
         this._addKeyListener();
       }
 
       disconnectedCallback() {
         super.disconnectedCallback();
-        this._removeBlurListener();
+        this._removePickerTransitionEndListener();
         this._removeKeyListener();
       }
 
-      _addBlurListener() {
-        // close on blur
-        this.addEventListener('blur', this.close.bind(this), {passive: true});
+      _addPickerTransitionEndListener() {
+        if (!this.opened) {
+          // enshure display style for the picker, for ignoring the tabindex of the picker elements
+          this.$.picker.style.visibility = 'hidden';
+        }
+        this.$.picker.addEventListener('transitionend', this._onPickerTransitionEnd.bind(this), false);
       }
 
-      _removeBlurListener() {
-        this.removeEventListener('blur', this.close.bind(this), {passive: true});
+      _removePickerTransitionEndListener() {
+        this.$.picker.removeEventListener('transitionend', this._onPickerTransitionEnd.bind(this), false);
+      }
+
+      _onPickerTransitionEnd() {
+        if (!this.opened) {
+          this.$.picker.style.visibility = 'hidden';
+        }
       }
 
       _addCancelOnClickListener() {
-        document.addEventListener('click', this.cancel.bind(this), {passive: true});
         // prevent when clicking on the picker that it is closes
-        this.addEventListener('click', this._stopPropagation, {passive: true});
+        this.addEventListener('click', this._stopPropagation, false);
+        document.addEventListener('click', this.cancel.bind(this), false);
       }
 
       _removeCancelOnClickListener() {
-        document.removeEventListener('click', this.cancel.bind(this), {passive: true});
-        this.removeEventListener('click', this._stopPropagation, {passive: true});
+        this.removeEventListener('click', this._stopPropagation, false);
+        document.removeEventListener('click', this.cancel.bind(this), false);
       }
 
       _stopPropagation(e) {
@@ -350,12 +359,12 @@
 
       _addKeyListener() {
         super._addKeyListener && super._addKeyListener();
-        this.addEventListener('keydown', this._checkKeycode.bind(this), {passive: true});
+        this.addEventListener('keydown', this._checkKeycode.bind(this), false);
       }
 
       _removeKeyListener() {
         super._removeKeyListener && super._removeKeyListener();
-        this.removeEventListener('keydown', this._checkKeycode.bind(this), {passive: true});
+        this.removeEventListener('keydown', this._checkKeycode.bind(this), false);
       }
 
       _nativeOnMobileChanged(nativeOnMobile) {
@@ -382,8 +391,9 @@
         if (!e) {
           return;
         }
-        if (super._checkKeycode) {
-          super._checkKeycode(e);
+        if (e.keyCode === 27 && !this.noCancelOnEscKey) { // esc
+          this.cancel();
+          return;
         }
         if (e.keyCode === 13 || e.keyCode === 32) { // space || enter
           if (this.opened) {
@@ -394,9 +404,8 @@
           }
           return;
         }
-        if (e.keyCode === 27 && !this.noCancelOnEscKey) { // esc
-          this.cancel();
-          return;
+        if (super._checkKeycode) {
+          super._checkKeycode(e);
         }
       }
 
@@ -404,6 +413,7 @@
        * open the picker
        */
       open() {
+        this.$.picker.style.visibility = '';
         if (super.open) {
           super.open();
         }
@@ -473,6 +483,7 @@
         }
         this.close();
       }
+
     }
   }
 </script>

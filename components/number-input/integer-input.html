@@ -39,6 +39,9 @@
               box-sizing: content-box;
               padding: 0 !important;
             }
+            :host(:focus) {
+              outline: none;
+            }
             :host([invalid]) #input,
             #input:invalid {
               @apply --input-invalid;
@@ -376,7 +379,6 @@
         // esc
         if (e.keyCode === 27) {
           this._updateView();
-          e.stopPropagation();
           this.blur();
           return;
         }
@@ -449,7 +451,7 @@
       /**
        * focus the input
        */
-      focus(e) {
+      focus() {
         this.$.input.focus();
         if (this.$.input.scrollIntoViewIfNeeded) {
           this.$.input.scrollIntoViewIfNeeded();
