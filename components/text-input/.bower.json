@@ -31,12 +31,12 @@
   "resolutions": {
     "webcomponentsjs": "^1.0.0"
   },
-  "version": "2.0.4",
-  "_release": "2.0.4",
+  "version": "2.0.5",
+  "_release": "2.0.5",
   "_resolution": {
     "type": "version",
-    "tag": "2.0.4",
-    "commit": "e1000c27d025fc12d5bb5426bf8ac7ca7cd1ea40"
+    "tag": "2.0.5",
+    "commit": "dea790934e585329593d71bc7c3b2b9c8ec7b877"
   },
   "_source": "https://github.com/fooloomanzoo/text-input.git",
   "_target": "2",

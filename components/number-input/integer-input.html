@@ -60,12 +60,12 @@
         }
       }
 
-      _computeType(decimalSeparator, numberStyle, unit) {
+      _computeType(decimalSeparator, numberStyle, unit, alwaysSign) {
         // maximize compatibility for mobile keyboards
-        if (!unit) {
+        if (!unit && !alwaysSign) {
           return 'number';
         }
-        return 'text';
+        return 'tel';
       }
     }
   }
