@@ -11,7 +11,7 @@
 
       constructor() {
         super();
-        this._validFormats = ['rgb', 'hex', 'hsl'];
+        this._validFormats = ['rgb', 'hex', 'hsl', 'text'];
       }
 
       static get properties() {
@@ -92,12 +92,12 @@
             value: 0
           },
           /**
-           * format of the colorString (possible colorStrings: 'rgb', 'hex', 'hsl')
+           * format of the colorString (possible colorStrings: 'rgb', 'hex', 'hsl', 'text')
            */
           format: {
             type: String,
             notify: true,
-            value: 'hex',
+            value: 'text',
             observer: '_formatChanged'
           },
           /**
@@ -143,6 +143,39 @@
         ];
       }
 
+      connectedCallback() {
+        super.connectedCallback();
+        this._createTestCanvas();
+      }
+
+      _createTestCanvas() {
+        const testcanvas = document.createElement('canvas');
+        testcanvas.width = 1;
+        testcanvas.height = 1;
+        testcanvas.style.visibility = 'hidden';
+        testcanvas.style.pointerEvents = 'none';
+        testcanvas.style.position = 'fixed';
+        this.appendChild(testcanvas);
+        this._testCanvasContext = testcanvas.getContext("2d");
+        // test if `#rrggbbaa` is supported
+        const rgba = this._testColor('#ff000080');
+        this._hexAlphaSupported = (rgba.r === 255 && rgba.g === 0 && rgba.b === 0 && rgba.alpha === 0.5);
+      }
+
+      _testColor(value) {
+        this._testCanvasContext.clearRect(0, 0, 1, 1);
+        this._testCanvasContext.fillStyle = value || 'rgba(0,0,0,0)';
+        this._testCanvasContext.fillRect(0, 0, 1, 1);
+        const imgData = this._testCanvasContext.getImageData(0,0,1,1);
+        return {
+          r: imgData.data[0],
+          g: imgData.data[1],
+          b: imgData.data[2],
+          alpha: this._hexToAlpha(imgData.data[3].toString(16), 2),
+          alphaMode: imgData.data[3] !== 255
+        }
+      }
+
       _alphaModeChanged(alphaMode) {
         if (alphaMode !== true) {
           this.alpha = 1;
@@ -158,30 +191,31 @@
             this.format = oldFormat;
             return;
           }
-          this.format = 'hex';
+          this.format = 'rgb';
           return;
         }
-        if (this.format !== 'hex') {
-          this.alpha = +this.alpha.toFixed(2);
+        if (oldFormat === 'hex' || oldFormat === 'text') {
+          this.alpha = +this.alpha.toFixed(2)
         }
-        switch (this.format) {
-          case 'hsl':
-            this._hslChanged(this.h, this.s, this.l);
-            break;
-          default:
-            this._rgbChanged(this.r, this.g, this.b);
-        }
+        this._debouncedSetValue();
       }
 
       _colorStringChanged(colorString, oldValue) {
-        if (colorString === undefined) return;
+        if (colorString === undefined) {
+          this._resetColor();
+          return;
+        }
 
         let toSet = {},
           match,
           format;
         // input-format detection
+        if (this.format === 'text') {
+          this.setProperties(this._testColor(colorString));
+          return;
+        }
         // hsl-format
-        if (match = colorString.match(this._validateHsl)) {
+        else if (match = colorString.match(this._validateHsl)) {
           if (match[1] === undefined) { // no alpha
             toSet.alpha = 1;
             toSet.alphaMode = false;
@@ -209,6 +243,26 @@
             toSet.s = +toSet.s.toFixed((this.hslPrecision || 0) + 2);
             toSet.l = +toSet.l.toFixed((this.hslPrecision || 0) + 2);
           }
+        // rgb-format
+        } else if (match = colorString.match(this._validateRgb)) {
+          if (match[1] === undefined) { // no alpha
+            toSet.alpha = 1;
+            toSet.alphaMode = false;
+          } else { // with alpha
+            toSet.alpha = this._normalizedClamp(+match[5]);
+            toSet.alphaMode = true;
+          }
+          toSet.r = this._mathMod(+match[2], 256);
+          toSet.g = this._mathMod(+match[3], 256);
+          toSet.b = this._mathMod(+match[4], 256);
+          if (this.format !== 'rgb') {
+            format = 'rgb';
+            toSet.alpha = +toSet.alpha.toFixed(2);
+          } else {
+            toSet.r = Math.round(toSet.r);
+            toSet.g = Math.round(toSet.g);
+            toSet.b = Math.round(toSet.b);
+          }
         // hex-format
         } else if (match = colorString.match(this._validateHex)) {
           if (match[1] !== undefined) { // six hex numbers
@@ -233,30 +287,10 @@
           if (this.format !== 'hex') {
             format = 'hex';
           }
-        // rgb-format
-        } else if (match = colorString.match(this._validateRgb)) {
-          if (match[1] === undefined) { // no alpha
-            toSet.alpha = 1;
-            toSet.alphaMode = false;
-          } else { // with alpha
-            toSet.alpha = this._normalizedClamp(+match[5]);
-            toSet.alphaMode = true;
-          }
-          toSet.r = this._mathMod(+match[2], 256);
-          toSet.g = this._mathMod(+match[3], 256);
-          toSet.b = this._mathMod(+match[4], 256);
-          if (this.format !== 'rgb') {
-            format = 'rgb';
-            toSet.alpha = +toSet.alpha.toFixed(2);
-          } else {
-            toSet.r = Math.round(toSet.r);
-            toSet.g = Math.round(toSet.g);
-            toSet.b = Math.round(toSet.b);
-          }
-        }
-        if (!match && oldValue !== undefined) {
-          this._colorStringChanged(oldValue);
-          return;
+        } else {
+          // last try
+          toSet = this._testColor(colorString);
+          format = 'text';
         }
         if (format && this.format !== format) {
           toSet.format = format;
@@ -266,9 +300,10 @@
 
       _debouncedSetValue() {
         if (this._activeSetValueJob) {
-          window.cancelAnimationFrame(this._activeSetValueJob);
+          clearTimeout(this._activeSetValueJob);
+          this._activeSetValueJob = null;
         }
-        this._activeSetValueJob = window.requestAnimationFrame(this._setValue.bind(this))
+        this._activeSetValueJob = setTimeout(this._setValue.bind(this, false), 0)
       }
 
       _setValue() {
@@ -276,28 +311,39 @@
           case 'hsl':
             if (!isNaN(this.h) && !isNaN(this.s) && !isNaN(this.l)) {
               if (this.alphaMode === true) {
-                this.colorString = `hsla(${this.h.toFixed(this.hslPrecision || 0)}, ${(this.s*100).toFixed(this.hslPrecision || 0)}%, ${(this.l*100).toFixed(this.hslPrecision || 0)}%, ${this.alpha === undefined ? 0 : this.alpha})`;
+                this.colorString = `hsla(${this.h.toFixed(this.hslPrecision || 0)}, ${(this.s*100).toFixed(this.hslPrecision || 0)}%, ${(this.l*100).toFixed(this.hslPrecision || 0)}%, ${this.alpha === undefined ? 1 : this.alpha})`;
               } else {
                 this.colorString = `hsl(${this.h.toFixed(this.hslPrecision || 0)}, ${(this.s*100).toFixed(this.hslPrecision || 0)}%, ${(this.l*100).toFixed(this.hslPrecision || 0)}%)`;
               }
             }
             break;
-          case 'rgb':
-            if (!isNaN(this.r) && !isNaN(this.g) && !isNaN(this.b)) {
-              if (this.alphaMode === true) {
-                this.colorString = `rgba(${Math.round(this.r)}, ${Math.round(this.g)}, ${Math.round(this.b)}, ${this.alpha === undefined ? 0 : this.alpha})`;
-              } else {
-                this.colorString = `rgb(${Math.round(this.r)}, ${Math.round(this.g)}, ${Math.round(this.b)})`;
+          case 'text':
+            if (!this.alphaMode) {
+              // keeping color string if possible
+              const rgba = this._testColor(this.colorString);
+              if (rgba.r === this.r && rgba.b === this.b && rgba.g === this.g) {
+                break;
               }
             }
-            break;
           case 'hex':
-          default:
             if (this.hex !== undefined) {
               if (this.alphaMode === true) {
-                this.colorString = `${this.hex}${this._alphaToHex(this.alpha, this.hex.length === 4 ? 1 : 2)}`;
+                if (this._hexAlphaSupported) {
+                  this.colorString = `${this.hex}${this._alphaToHex(this.alpha, this.hex.length === 4 ? 1 : 2)}`;
+                  break;
+                }
               } else {
                 this.colorString = this.hex;
+                break;
+              }
+            }
+          case 'rgb':
+          default:
+            if (!isNaN(this.r) && !isNaN(this.g) && !isNaN(this.b)) {
+              if (this.alphaMode === true) {
+                this.colorString = `rgba(${Math.round(this.r)}, ${Math.round(this.g)}, ${Math.round(this.b)}, ${this.alpha === undefined ? 1 : this.alpha})`;
+              } else {
+                this.colorString = `rgb(${Math.round(this.r)}, ${Math.round(this.g)}, ${Math.round(this.b)})`;
               }
             }
         }
@@ -332,6 +378,7 @@
 
       _hexChanged(hex) {
         if (hex === undefined) {
+          this._resetColor();
           return;
         }
         let toSet = {};
@@ -352,6 +399,7 @@
 
       _rgbChanged(r, g, b) {
         if (isNaN(r) && isNaN(g) && isNaN(b)) {
+          this._resetColor();
           return;
         }
         if (isNaN(this.r) || isNaN(this.g) || isNaN(this.b)) {
@@ -406,6 +454,7 @@
 
       _hslChanged(h, s, l) {
         if (isNaN(h) && isNaN(s) && isNaN(l)) {
+          this._resetColor();
           return;
         }
         if (isNaN(this.h) || isNaN(this.s) || isNaN(this.l)) {
@@ -525,7 +574,7 @@
 
       _hexToAlpha(hex, length) {
         const base = Math.pow(16, length) - 1;
-        return parseInt(hex, 16) / base;
+        return Math.round((100 * parseInt(hex, 16)) / base) / 100;
       }
 
       hslToRgb(h, s, l) { // not rounded yet
@@ -586,6 +635,20 @@
           s: this._normalizedClamp(s),
           l: this._normalizedClamp(l)
         };
+      }
+
+      _resetColor() {
+        this.setProperties({
+          colorString: undefined,
+          r: undefined,
+          g: undefined,
+          b: undefined,
+          h: undefined,
+          s: undefined,
+          l: undefined,
+          hex: undefined,
+          alpha: 1
+        })
       }
 
       _mathMod(dividend, divisor) {
